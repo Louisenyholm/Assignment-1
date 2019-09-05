@@ -2,7 +2,9 @@
 title: "Assignment 1 - Data Cleaning - Instructions"
 author: "Louise Nyholm"
 date: "05-09-2019"
-output: html_document
+output:
+  md_document:
+  variant: markdown_github
 ---
 
 # Assignment 1, Language development in Autism Spectrum Disorder (ASD) - Brushing up your code skills
@@ -96,7 +98,9 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 
 ```{r}
-
+#Test
+ggplot(demo, aes(Child.ID, Visit)) +
+  geom_bar(stat = "identity", position = "dodge")
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
