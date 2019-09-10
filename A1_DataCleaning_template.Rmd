@@ -98,9 +98,19 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 
 ```{r}
-#Test
-ggplot(demo, aes(Child.ID, Visit)) +
-  geom_bar(stat = "identity", position = "dodge")
+# Changing colnames/variable names to make them consistent
+colnames(demo)[1] <- "SUBJ"
+colnames(demo)[2] <- "VISIT"
+
+# Making all variables uppercase in all the dataframes
+x <- c(1:36)
+names(demo)[x] <- toupper(names(demo)[x])
+
+y <- c(1:12)
+names(LU)[y] <- toupper(names(LU)[y])
+
+z <- c(1:8)
+names(token)[z] <- toupper(names(token)[z])
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
@@ -109,8 +119,9 @@ Tip: The stringr package is what you need. str_extract () will allow you to extr
 
 
 ```{r}
-
-
+# Extracting the numbers from the vector (VISIT in token), which also includes letters
+token$VISIT <- str_extract(token$VISIT, "\\d")
+LU$VISIT <- str_extract(LU$VISIT, "\\d")
 ```
 
 2c. We also need to make a small adjustment to the content of the Child.ID coloumn in the demographic data. Within this column, names that are not abbreviations do not end with "." (i.e. Adam), which is the case in the other two data sets (i.e. Adam.). If The content of the two variables isn't identical the rows will not be merged.
@@ -121,7 +132,10 @@ Tip: You can either have one line of code for each child name that is to be chan
 
 
 ```{r}
-
+# Replacing all "." with nothing to delete them
+demo$SUBJ <- str_replace_all(demo$SUBJ, "\\.", "")
+LU$SUBJ <- str_replace_all(LU$SUBJ, "\\.", "")
+token$SUBJ <- str_replace_all(token$SUBJ, "\\.", "")
 ```
 
 2d. Now that the nitty gritty details of the different data sets are fixed, we want to make a subset of each data set only containig the variables that we wish to use in the final data set.
@@ -157,7 +171,10 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
-
+# Selecting the interesting variables
+demoselected <- select(demo, c(1:4, 7, 9, 14, 22, 24, 33))
+LUselected <- select(LU, c(1:3, 8))
+tokenselected <- select(token, c(1:4, 6, 7))
 ```
 
 2e. Finally we are ready to merge all the data sets into just one. 
@@ -167,13 +184,15 @@ Some things to pay attention to:
 * make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
 ```{r}
-
+# Merging by Subject and visit - (all = TRUE (el. all.x = T og all.y = T) --> matcher, hvad der matches kan, og resten er tilføjet med NA fyld ud i de ekstra "huller")
+df <- merge(demoselected, LUselected, by = c("SUBJ", "VISIT"), all = TRUE)
+df2 <- merge(df, tokenselected, by = c("SUBJ", "VISIT"), all = TRUE)
 
 ```
 
 
 2f. Only using clinical measures from Visit 1
-In order for our models to be useful, we want to miimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
+In order for our models to be useful, we want to minimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
 
 A possible way to do so:
 * create a new dataset with only visit 1, child id and the 4 relevant clinical variables to be merged with the old dataset
@@ -183,6 +202,19 @@ A possible way to do so:
 
 
 ```{r}
+# Creating dataset, which only contains data from visit 1s
+visit1 <- df2 %>% 
+  filter(VISIT == 1) %>% # Filtering the rows containing 1 in the "VISIT"-column.
+  select(c(1, 7:10)) # Selecting the variables of interest (and ID).
+
+# Renaming the variables to indicate, they only include data from visit 1
+colnames(visit1)[2] <- "ADOS1"
+colnames(visit1)[3] <- "SOCIALISATION1"
+colnames(visit1)[4] <- "MULLENRAW1"
+colnames(visit1)[5] <- "EXPRESSIVELANGRAW1"
+
+# Merging the new dataset with the old
+df3 <- merge(visit1, df2, by = "SUBJ")
 
 ```
 
@@ -194,7 +226,15 @@ Now we want to
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
+# ANonymising participants
+# ???
 
+# Making sure, variables have sensible values
+df3$GENDER <- ifelse(df3$GENDER == 1, "M", df3$GENDER) # "M" instead of 1 - indicating "Male"
+df3$GENDER <- ifelse(df3$GENDER == 2, "F", df3$GENDER) # "F" instead of 2 - indicating "Female"
+
+df3$DIAGNOSIS <- ifelse(df3$DIAGNOSIS == "A", "ASD", df3$DIAGNOSIS) # "ASD" instead of "A" - indicating "Autism Spectrum Disorder"
+df3$DIAGNOSIS <- ifelse(df3$DIAGNOSIS == "B", "TD", df3$DIAGNOSIS) # "TD" instead of "B" - indicating "Typically Developing"
 ```
 
 
@@ -210,7 +250,6 @@ List all kids who:
 3. have not completed all trials. Tip: Use pipes to solve this
 
 ```{r}
-
 
 ```
 
