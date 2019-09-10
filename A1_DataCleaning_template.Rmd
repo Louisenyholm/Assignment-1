@@ -207,14 +207,15 @@ visit1 <- df2 %>%
   select(c(1, 7:10)) # Selecting the variables of interest (and ID).
 
 # Renaming the variables to indicate, they only include data from visit 1
-colnames(visit1)[2] <- "ADOS1"
-colnames(visit1)[3] <- "SOCIALISATION1"
-colnames(visit1)[4] <- "MULLENRAW1"
-colnames(visit1)[5] <- "EXPRESSIVELANGRAW1"
+#colnames(visit1)[2] <- "ADOS1"
+#colnames(visit1)[3] <- "SOCIALISATION1"
+#colnames(visit1)[4] <- "MULLENRAW1"
+#colnames(visit1)[5] <- "EXPRESSIVELANGRAW1"
+
+colnames(visit1) <- c("SUBJ", sapply(2:5, function(x) paste(colnames(visit1)[x], "1", sep = "")))
 
 # Merging the new dataset with the old
-df3 <- merge(visit1, df2, by = "SUBJ")
-
+df3 <- merge(visit1, df2, by = "SUBJ", all = T)
 ```
 
 2g. Final touches
@@ -225,15 +226,13 @@ Now we want to
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
-# ANonymising participants
-# ???
+# Anonymising participants
+df3$SUBJ <- as.numeric(as.factor(df3$SUBJ)) # Assigning each participant a number by making the name a factor, and then a number.
 
 # Making sure, variables have sensible values
-df3$GENDER <- ifelse(df3$GENDER == 1, "M", df3$GENDER) # "M" instead of 1 - indicating "Male"
-df3$GENDER <- ifelse(df3$GENDER == 2, "F", df3$GENDER) # "F" instead of 2 - indicating "Female"
+df3$GENDER <- ifelse(df3$GENDER == 1, "M", "F") # "M" instead of 1 - indicating "Male"
 
-df3$DIAGNOSIS <- ifelse(df3$DIAGNOSIS == "A", "ASD", df3$DIAGNOSIS) # "ASD" instead of "A" - indicating "Autism Spectrum Disorder"
-df3$DIAGNOSIS <- ifelse(df3$DIAGNOSIS == "B", "TD", df3$DIAGNOSIS) # "TD" instead of "B" - indicating "Typically Developing"
+df3$DIAGNOSIS <- ifelse(df3$DIAGNOSIS == "A", "ASD", "TD") # "ASD" instead of "A" - indicating "Autism Spectrum Disorder", "TD" instead of "B" - indicating Typical Development.
 ```
 
 
