@@ -187,7 +187,6 @@ Some things to pay attention to:
 # Merging by Subject and visit - (all = TRUE (el. all.x = T og all.y = T) --> matcher, hvad der matches kan, og resten er tilføjet med NA fyld ud i de ekstra "huller")
 df <- merge(demoselected, LUselected, by = c("SUBJ", "VISIT"), all = TRUE)
 df2 <- merge(df, tokenselected, by = c("SUBJ", "VISIT"), all = TRUE)
-
 ```
 
 
